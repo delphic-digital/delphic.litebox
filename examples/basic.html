@@ -6,6 +6,7 @@
 		<title></title>
 		<meta name="description" content="">
 		<meta name="viewport" content="width=device-width">
+		
 		<style>
 			.ender-overlay {
 				display: none;
@@ -13,16 +14,20 @@
 				background: #c8e1ff;
 			}
 		</style>
+
 	</head>
 	<body>
+		
 		<a href="#" data-modal="true" id="trigger-one">Click me</a>
-			<div id="overlay-one" class="ender-overlay clr">
-	    	<a class="close">Close</a>
-	    	<h1>First Overlay</h1>
-			</div>
+		
+		<div id="overlay-one" class="ender-overlay">
+			<a class="close">Close</a>
+			<h1>First Overlay</h1>
+		</div>
 
-		<script src="lib/ender/ender.min.js"></script>
-		<script src="delphic.modal.js"></script>
+		<script src="lib/ender.min.js"></script>
+		<script src="../delphic.modal.js"></script>
+		
 		<script>
 			$(document).ready(function () {
  
@@ -35,5 +40,6 @@
 				
 			});
 		</script>
+
 	</body>
 </html>
