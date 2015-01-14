@@ -27,7 +27,6 @@
 	}
 
 	function _build(e) {
-		console.log(e.data)
 		var $target = $(this),
 		    $content = null,
 		    source = ($target[0].href) ? $target[0].href || "" : "",
@@ -69,6 +68,8 @@
 			}*/
 
 		_loadURL(source);
+
+		_animate();
 	}
 
 	function _bindStyles() {
@@ -91,7 +92,6 @@
 			left: 0,
 			bottom: 0,
 			right: 0,
-		/*	zIndex: mz + 2,*/
 			width: options.width,
 			height: options.height,
 			maxWidth: options.maxWidth,
@@ -128,6 +128,10 @@
 			height: '100%',
 			border: 0
 		})
+	}
+
+	function _animate() {
+
 	}
 
 	function _appendObject($object) {
