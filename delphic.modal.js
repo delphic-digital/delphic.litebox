@@ -1,88 +1,154 @@
-;(function(DELPHIC, MINI) {
+/* ==========================================================
+ *
+ * Delphic.modal.js
+ * Version: 2.0.0 (Tues, 13 Jan 2015)
+ * Delphic Digital
+ *
+ * ========================================================== */
 
-	var MINI = require('minified'), _=MINI._, $=MINI.$, HTML=MINI.HTML; 
 
-	MINI.M.prototype.modal = function(o) { 
+;(function(DELPHIC, $) {
 
-	  // Default settings
-	  var opt = {
-			width: '50%', // The box width (es. '500px')
-			height: '50%', // The box height (es. '300px')
-			maxWidth: '800px', // The box height (es. '300px')
-			maxHeight: '600px', // The box height (es. '300px')
-			content: '', // The box HTML content
-			load: '' // Path to external file to load in the box
-		};
+	var $body = null,
+	    data = {},
+	    options = {
+	    	width: '50%',
+	    	height: '50%',
+	    	maxWidth: '800px',
+	    	maxHeight: '600px',
+	    	overlayColor: '#fff',
+	    	overlayOpacity: '.75'
+	    };
 
-		_.extend(opt, o); 
+	function _init(opts) {
+		$body = $("body");
 
-		this.on('click', init)
+		return $(this).on("click.modal", $.extend({}, options, opts || {}), _build);
+	}
 
-		function init(){
-			
-			// Setup
-			$('body').add(HTML('<div id="d-back"></div><div id="d-modal"><div id="d-close-btn"></div><div id="d-modal-content"></div></div>'));
-			$('#d-back, #d-close-btn').on('click', close);
-			
-			// Find maximum z-index
-			var mz = 0;
-			$('*').per(function(el, i) {
-				var z = $(el).get('$zIndex', true);
-				if(z > mz) mz = z;
-			});
+	function _build(e) {
+		var $target = $(this),
+		    $content = null,
+		    source = ($target[0].href) ? $target[0].href || "" : "",
+		    type = $target.data("boxer-type") || "";
 
-			var href = this.get('@href');
-			
-			if(href.match('http(s)?://(www.)?youtube|youtu\.be')){
+		_killDefaultEvent(e);
+
+		// Cache internal data
+		data = $.extend({}, {
+			$window: $(window),
+			$body: $("body"),
+			$target: $target
+		}, e.data);
+
+		// Assemble HTML
+		var html = '';
+		html += '<div id="modal-overlay"></div>';
+		html += '<div id="modal" class="loading animating">';
+		html += '<div class="modal__close">Close (X)</div>';
+		html += '<div class="modal__content">';
+		html += '</div></div>'; //__content, modal
+
+		data.$body.append(html);
+
+		data.$overlay = $('#modal-overlay');
+		data.$modal = $('#modal');
+		data.$content = data.$modal.find(".modal__content");
+		data.$close = data.$modal.find(".modal__close");
+
+		_bindStyles();
+
+		_bindEvents();
+
+		/*if(href.match('http(s)?://(www.)?youtube|youtu\.be')){
 				var youtubeID = getYoutubeID(href);
 				opt.content = '<iframe width="100%" height="100%" src="//www.youtube.com/embed/'+youtubeID+'?rel=0&autoplay=1&autohide=1&showinfo=0" frameborder="0" allowfullscreen></iframe>';
 			}else {
 				opt.content = '<iframe width="100%" height="100%" src="'+href+'" frameborder="0"></iframe>';
-			}
-			
-			$('#d-modal-content').ht('{{{content}}}', opt);
+			}*/
 
-			$('#d-back,#d-modal,#d-close-btn').show();
+		_loadURL(source);
+	}
 
-			$('#d-back').set({
-				$backgroundColor: '#000',
-				$$fade: 0.75,
-				$position: 'fixed',
-				$width: '100%',
-				$height: '100%',
-				$zIndex: mz + 1,
-				$top: 0,
-				$left: 0,
-				$cursor: 'pointer'
-			});
-						
-			$('#d-modal').set({
-				$backgroundColor: '#fff',
-				$$fade: 0,
-				$margin: 'auto',
-				$position: 'fixed',
-				$top: 0,
-				$left: 0,
-				$bottom: 0,
-				$right: 0,
-				$zIndex: mz + 2,
-				$width: opt.width,
-				$height: opt.height,
-				$maxWidth: opt.maxWidth,
-				$maxHeight: opt.maxHeight,
-	/*			$overflowY: 'auto',*/
-			}).animate({$$fade: 1}, 300);
+	function _bindStyles() {
 
-			$('#d-close-btn').set({
-					$position:'absolute',
-					$top: '-40px',
-					$right:'-40px',
-					$zIndex:1002,
-					$cursor:'pointer'
-			});
+		data.$overlay.css({
+			backgroundColor: options.overlayColor,
+			opacity: options.overlayOpacity,
+			position: 'fixed',
+			width: '100%',
+			height: '100%',
+			top: 0,
+			left: 0,
+		})
+
+		data.$modal.css({
+			backgroundColor: '#fff',
+			margin: 'auto',
+			position: 'fixed',
+			top: 0,
+			left: 0,
+			bottom: 0,
+			right: 0,
+		/*	zIndex: mz + 2,*/
+			width: options.width,
+			height: options.height,
+			maxWidth: options.maxWidth,
+			maxHeight: options.maxHeight,
+		})
+
+		data.$content.css({
+			width: '100%',
+			height: '100%'
+		})
+
+		data.$close.css({
+			position:'absolute',
+			top: '-40px',
+			right:'-40px',
+			zIndex:1002,
+			cursor:'pointer',
+			width: 70,
+			height: 30
+		});
+	}
+
+	function _bindEvents() {
+		data.$body.on("click.modal", "#modal-overlay, .modal__close", onClose)
+	}
+
+
+	function _loadURL(source) {
+		var $iframe = $('<iframe class="modal__iframe" src="' + source + '" />');
+		_appendObject($iframe);
+
+		$iframe.css({
+			width: '100%',
+			height: '100%',
+			border: 0
+		})
+	}
+
+	function _appendObject($object) {
+		data.$content.append($object);
+	}
+
+
+	function _killDefaultEvent(e) {
+		if (e.preventDefault) {
+			e.stopPropagation();
+			e.preventDefault();
 		}
+	}
 
-		function getYoutubeID(url){
+	function onClose(e) {
+		data.$overlay.remove();
+		data.$modal.remove();
+		// reset data
+		data = {};
+	}
+
+	function getYoutubeID(url){
 			var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
 			var match = url.match(regExp);
 			if (match&&match[2].length==11){
@@ -91,13 +157,12 @@
 				//error
 			}
 		}
-				
-		function close(){
-			$('#d-modal iframe').hide();
-			$('#d-back,#d-modal,#d-close-btn').remove();
-		}
-		
-		
-	}
 
-} (DELPHIC = window.DELPHIC || {}, MINI = window.MINI || require('minified')));
+	$.fn.modal = function(method) {
+		if (typeof method === 'object' || !method) {
+			return _init.apply(this, arguments);
+		}
+		return this;
+	};
+
+} (DELPHIC = window.DELPHIC || {}, window.jQuery || window.Zepto));

@@ -1,4 +1,4 @@
-dd-modal
+modal
 ========
 
 Delphic Digital Modal
