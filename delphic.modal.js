@@ -21,12 +21,13 @@
 	    };
 
 	function _init(opts) {
+		$.extend(options, opts || {});
 		$body = $("body");
-
-		return $(this).on("click.modal", $.extend({}, options, opts || {}), _build);
+		return $(this).on("click.modal", _build);
 	}
 
 	function _build(e) {
+		console.log(e.data)
 		var $target = $(this),
 		    $content = null,
 		    source = ($target[0].href) ? $target[0].href || "" : "",
@@ -144,19 +145,23 @@
 	function onClose(e) {
 		data.$overlay.remove();
 		data.$modal.remove();
+
+		// Clean up
+		data.$body.off(".modal")
+
 		// reset data
 		data = {};
 	}
 
 	function getYoutubeID(url){
-			var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-			var match = url.match(regExp);
-			if (match&&match[2].length==11){
-				return match[2];
-			}else{
-				//error
-			}
+		var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+		var match = url.match(regExp);
+		if (match&&match[2].length==11){
+			return match[2];
+		}else{
+			//error
 		}
+	}
 
 	$.fn.modal = function(method) {
 		if (typeof method === 'object' || !method) {
