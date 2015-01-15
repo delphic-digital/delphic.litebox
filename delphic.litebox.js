@@ -1,6 +1,6 @@
 /* ==========================================================
  *
- * Delphic.modal.js
+ * Delphic.litebox.js
  * Version: 2.0.0 (Tues, 13 Jan 2015)
  * Delphic Digital
  *
@@ -23,7 +23,7 @@
 	function _init(opts) {
 		$.extend(options, opts || {});
 		$body = $("body");
-		return $(this).on("click.modal", _build);
+		return $(this).on("click.litebox", _build);
 	}
 
 	function _build(e) {
@@ -43,18 +43,18 @@
 
 		// Assemble HTML
 		var html = '';
-		html += '<div id="modal-overlay"></div>';
-		html += '<div id="modal" class="loading animating">';
-		html += '<div class="modal__close">Close (X)</div>';
-		html += '<div class="modal__content">';
-		html += '</div></div>'; //__content, modal
+		html += '<div id="litebox-overlay"></div>';
+		html += '<div id="litebox" class="loading animating">';
+		html += '<div class="litebox__close">Close (X)</div>';
+		html += '<div class="litebox__content">';
+		html += '</div></div>'; //__content, litebox
 
 		data.$body.append(html);
 
-		data.$overlay = $('#modal-overlay');
-		data.$modal = $('#modal');
-		data.$content = data.$modal.find(".modal__content");
-		data.$close = data.$modal.find(".modal__close");
+		data.$overlay = $('#litebox-overlay');
+		data.$litebox = $('#litebox');
+		data.$content = data.$litebox.find(".litebox__content");
+		data.$close = data.$litebox.find(".litebox__close");
 
 		_bindStyles();
 
@@ -84,7 +84,7 @@
 			left: 0,
 		})
 
-		data.$modal.css({
+		data.$litebox.css({
 			backgroundColor: '#fff',
 			margin: 'auto',
 			position: 'fixed',
@@ -115,12 +115,12 @@
 	}
 
 	function _bindEvents() {
-		data.$body.on("click.modal", "#modal-overlay, .modal__close", onClose)
+		data.$body.on("click.litebox", "#litebox-overlay, .litebox__close", onClose)
 	}
 
 
 	function _loadURL(source) {
-		var $iframe = $('<iframe class="modal__iframe" src="' + source + '" />');
+		var $iframe = $('<iframe class="litebox__iframe" src="' + source + '" />');
 		_appendObject($iframe);
 
 		$iframe.css({
@@ -148,10 +148,10 @@
 
 	function onClose(e) {
 		data.$overlay.remove();
-		data.$modal.remove();
+		data.$litebox.remove();
 
 		// Clean up
-		data.$body.off(".modal")
+		data.$body.off(".litebox")
 
 		// reset data
 		data = {};
@@ -167,7 +167,7 @@
 		}
 	}
 
-	$.fn.modal = function(method) {
+	$.fn.litebox = function(method) {
 		if (typeof method === 'object' || !method) {
 			return _init.apply(this, arguments);
 		}
