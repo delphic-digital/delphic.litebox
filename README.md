@@ -1,4 +1,4 @@
-modal
+litebox
 ========
 
 Delphic Digital Modal
