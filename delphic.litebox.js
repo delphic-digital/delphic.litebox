@@ -33,7 +33,7 @@
 		var $target = $(this),
 		    $content = null,
 		    source = ($target[0].href) ? $target[0].href || "" : "",
-		    type = $target.data("boxer-type") || "";
+		    type = $target.data("litebox-type") || "";
 
 		_killDefaultEvent(e);
 
@@ -71,7 +71,11 @@
 				opt.content = '<iframe width="100%" height="100%" src="'+href+'" frameborder="0"></iframe>';
 			}*/
 
-		_loadURL(source);
+			if(type === 'image'){
+				_loadImage(source);
+			}else{
+				_loadURL(source);
+			}
 
 		_animate();
 	}
@@ -124,6 +128,17 @@
 		data.$body.on("click.litebox", "#litebox-overlay, .litebox__close", onClose)
 	}
 
+
+	function _loadImage(source) {
+		var $image = $('<image class="litebox__image" src="' + source + '" />');
+		$image.css({
+			maxWidth: '100%',
+			height: 'auto',
+			border: 0
+		})
+		_appendObject($image);
+
+	}
 
 	function _loadURL(source) {
 		var $iframe = $('<iframe class="litebox__iframe" src="' + source + '" />');
