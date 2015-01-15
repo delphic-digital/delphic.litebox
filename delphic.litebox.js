@@ -12,12 +12,15 @@
 	var $body = null,
 	    data = {},
 	    options = {
+	    	container: null,
 	    	width: '50%',
 	    	height: '50%',
 	    	maxWidth: '800px',
 	    	maxHeight: '600px',
 	    	overlayColor: '#fff',
-	    	overlayOpacity: '.75'
+	    	overlayOpacity: '.75',
+	    	borderColor: '#fff',
+	    	borderWidth: 10
 	    };
 
 	function _init(opts) {
@@ -44,13 +47,14 @@
 		// Assemble HTML
 		var html = '';
 		html += '<div id="litebox-overlay"></div>';
-		html += '<div id="litebox" class="loading animating">';
+		html += '<div id="litebox">';
 		html += '<div class="litebox__close">Close (X)</div>';
 		html += '<div class="litebox__content">';
 		html += '</div></div>'; //__content, litebox
 
 		data.$body.append(html);
 
+		data.$container = $(options.container);
 		data.$overlay = $('#litebox-overlay');
 		data.$litebox = $('#litebox');
 		data.$content = data.$litebox.find(".litebox__content");
@@ -92,10 +96,12 @@
 			left: 0,
 			bottom: 0,
 			right: 0,
+			padding: options.borderWidth,
 			width: options.width,
 			height: options.height,
 			maxWidth: options.maxWidth,
 			maxHeight: options.maxHeight,
+			backgroundColor: options.borderColor
 		})
 
 		data.$content.css({
@@ -131,7 +137,7 @@
 	}
 
 	function _animate() {
-
+		data.$container.addClass('blurred')
 	}
 
 	function _appendObject($object) {
@@ -152,6 +158,7 @@
 
 		// Clean up
 		data.$body.off(".litebox")
+		data.$container.removeClass('blurred')
 
 		// reset data
 		data = {};
