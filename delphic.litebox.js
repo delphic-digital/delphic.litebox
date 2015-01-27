@@ -1,11 +1,3 @@
-/* ==========================================================
- *
- * Delphic.litebox.js
- * Version: 2.0.0 (Tues, 13 Jan 2015)
- * Delphic Digital
- *
- * ========================================================== */
-
 
 ;(function(DELPHIC, $) {
 
@@ -46,10 +38,9 @@
 
 		// Assemble HTML
 		var html = '';
-		html += '<div id="litebox-overlay"></div>';
 		html += '<div id="litebox">';
-		html += '<div class="litebox__close">Close (X)</div>';
 		html += '<div class="litebox__content">';
+				html += '<div class="litebox__close">Close (X)</div>';
 		html += '</div></div>'; //__content, litebox
 
 		data.$body.append(html);
@@ -82,35 +73,27 @@
 
 	function _bindStyles() {
 
-		data.$overlay.css({
-			backgroundColor: options.overlayColor,
-			opacity: options.overlayOpacity,
-			position: 'fixed',
-			width: '100%',
-			height: '100%',
-			top: 0,
-			left: 0,
-		})
-
 		data.$litebox.css({
-			backgroundColor: '#fff',
-			margin: 'auto',
+			backgroundColor: options.overlayColor,
 			position: 'fixed',
 			top: 0,
-			left: 0,
-			bottom: 0,
 			right: 0,
-			padding: options.borderWidth,
+			bottom: 0,
+			left: 0,
+			textAlign: 'center',
+			whiteSpace: 'nowrap'
+			/*padding: options.borderWidth,
 			width: options.width,
 			height: options.height,
 			maxWidth: options.maxWidth,
-			maxHeight: options.maxHeight,
-			backgroundColor: options.borderColor
+			maxHeight: options.maxHeight,*/
 		})
 
 		data.$content.css({
-			width: '100%',
-			height: '100%'
+			display: 'inline-block',
+			position: 'relative',
+			textAlign: 'left',
+			verticalAlign: 'middle'
 		})
 
 		data.$close.css({
@@ -122,10 +105,11 @@
 			width: 70,
 			height: 30
 		});
+
 	}
 
 	function _bindEvents() {
-		data.$body.on("click.litebox", "#litebox-overlay, .litebox__close", onClose)
+		data.$body.on("click.litebox", "#litebox, .litebox__close", onClose)
 	}
 
 
