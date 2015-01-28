@@ -5,12 +5,14 @@
 	    data = {},
 	    options = {
 	    	container: null,
+	    	width: 700,
+	    	height: 400,
 	    	maxWidth: '85%',
 	    	maxHeight: '85%',
 	    	overlayColor: '#fff',
 	    	overlayOpacity: '.75',
 	    	borderColor: '#fff',
-	    	borderWidth: 10
+	    	borderWidth: 2
 	    };
 
 	function _init(opts) {
@@ -63,6 +65,8 @@
 				opt.content = '<iframe width="100%" height="100%" src="'+href+'" frameborder="0"></iframe>';
 			}*/
 
+
+
 		if(type === 'image'){
 			_loadImage(source);
 		}else{
@@ -79,7 +83,12 @@
 		data.$container.css({
 			maxWidth: options.maxWidth,
 			maxHeight: options.maxHeight,
-			padding: options.borderWidth+'px'
+			borderWidth: options.borderWidth+'px'
+		})
+
+		data.$close.css({
+			top: '-'+options.borderWidth+'px',
+			right: '-'+options.borderWidth+'px'
 		})
 
 		data.$bodyContainer.addClass('blurred')
@@ -96,6 +105,8 @@
 			data.$image.load(function() {
 				var size = _getImageSize(data.$image); //console.log(size);
 				data.$image.data('naturalSize', size);
+				data.naturalSize = size;
+				data.containerSize = _calcContainerSize(size.naturalWidth,size.naturalHeight);
 				_open(data.$image);
 			})
 			.attr("src", source)
@@ -110,13 +121,24 @@
 
 	function _loadURL(source) {
 		var $iframe = $('<iframe class="litebox__iframe" src="' + source + '" />');
-		_appendObject($iframe);
 
 		$iframe.css({
 			width: '100%',
 			height: '100%',
 			border: 0
 		})
+
+		data.containerSize=[];
+
+		data.containerSize.newWidth=options.width;
+		data.containerSize.newHeight=options.height;
+
+		data.naturalSize=[];
+
+		data.naturalSize.naturalWidth=options.width;
+		data.naturalSize.naturalHeight=options.height;
+
+		_open($iframe);
 	}
 
 	function _appendObject($object) {
@@ -164,11 +186,8 @@
 	}
 
 	function _open(elm) {
-		var size = elm.data('naturalSize');
-		data.imageNaturalSize = size;
-		var containerSize = _calcContainerSize(size.naturalWidth,size.naturalHeight);
 		data.$litebox.removeClass("loading");
-		data.$container.velocity({ width: containerSize.newWidth, height: containerSize.newHeight}, 300, function(){
+		data.$container.velocity({ width: data.containerSize.newWidth, height: data.containerSize.newHeight}, 300, function(){
 			_appendObject(elm);
 			data.$content.velocity({ opacity: 1 }, 500);
 		});
@@ -199,8 +218,7 @@
 	}
 
 	function onResize(e){
-		_resize(data.imageNaturalSize.naturalWidth, data.imageNaturalSize.naturalHeight)
-
+		_resize(data.naturalSize.naturalWidth, data.naturalSize.naturalHeight)
 	}
 
 	function getYoutubeID(url){
