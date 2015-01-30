@@ -1,6 +1,7 @@
 ;(function(DELPHIC, $) {
 	"use strict";
 
+	//http://stackoverflow.com/questions/1646698/what-is-the-new-keyword-in-javascript#answers
 	function Litebox($content, config) {
 		//Check if litebox is invoked already, if not, invoke it as a constructor
 		if(this instanceof Litebox) {
@@ -14,12 +15,14 @@
 		}
 	}
 
-	//Define methods
-
 	Litebox.prototype = {
 		constructor: Litebox,
 		/*** defaults ***/
+		root:           'body',
 		contentFilters: ['image', 'html'], /* List of content filters to use to determine the content */
+
+		// Define methods
+
 		/* setup iterates over a single instance of litbox and prepares the background and binds the events */
 		setup: function(target, config){
 			DEBUG && console.log('setup');
@@ -34,15 +37,17 @@
 						'<div id="litebox" class="loading">',
 							'<div class="litebox__container">',
 								'<div class="litebox__loading">Loading</div>',
-								'<div class="litebox__close"></div',
+								'<div class="litebox__close"></div>',
 								'<div class="litebox__content"></div>',
 							'</div>',
 						'</div>'].join(''));
 
 			self.$instance = $html.clone();
+			console.log(self.$instance)
 
 			return this;
 		},
+
 		getContent: function(){
 			DEBUG && console.log('getContent');
 			var self = this,
@@ -63,24 +68,43 @@
 				return !data;
 			});
 
-			//console.log(filter)
-
 			/* Process it */
 			return filter.process.call(self, data);
 		},
-		setContent: function(){
-			DEBUG && console.log('setContent')
+
+		setContent: function($content){
+			DEBUG && console.log('setContent');
+			var self = this;
+
+			//self.$content = $content.addClass('litebox__content');
+/*			console.log($content);*/
+			self.$instance.find('.litebox__content').html($content);
+
+			return self;
 		},
+
 		open: function(event){
 			DEBUG && console.log('open');
 
 			var self = this;
 			var $content = self.getContent();
-			console.log($content);
+
+			if($content){
+				self.$instance.appendTo(self.root).fadeIn(500);
+
+				/* Set content and show */
+				$.when($content).done(function($content){
+					self.setContent($content);
+				});
+				return self;
+			}
+
 		},
+
 		close: function (){
 			DEBUG && console.log('close')
 		},
+
 		chainCallbacks: function(chain) {
 			for (var name in chain) {
 				this[name] = $.proxy(chain[name], this, $.proxy(this[name], this));
