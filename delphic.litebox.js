@@ -36,14 +36,13 @@
 			    $html = $([
 						'<div id="litebox" class="loading">',
 							'<div class="litebox__container">',
-								'<div class="litebox__loading">Loading</div>',
+								'<div class="litebox__loading"><div></div><div></div><div></div><div></div><div></div></div>',
 								'<div class="litebox__close"></div>',
 								'<div class="litebox__content"></div>',
 							'</div>',
 						'</div>'].join(''));
 
 			self.$instance = $html.clone();
-			console.log(self.$instance)
 
 			return this;
 		},
@@ -77,8 +76,8 @@
 			var self = this;
 
 			//self.$content = $content.addClass('litebox__content');
-/*			console.log($content);*/
-			self.$instance.find('.litebox__content').html($content);
+			console.log($content);
+			//self.$instance.find('.litebox__content').html($content);
 
 			return self;
 		},
@@ -90,7 +89,7 @@
 			var $content = self.getContent();
 
 			if($content){
-				self.$instance.appendTo(self.root).fadeIn(500);
+				self.$instance.appendTo(self.root).velocity("fadeIn", { duration: 500 })
 
 				/* Set content and show */
 				$.when($content).done(function($content){
