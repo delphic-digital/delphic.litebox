@@ -75,6 +75,9 @@
 			DEBUG && console.log('setContent');
 			var self = this;
 
+			self.$instance.removeClass('loading')
+
+
 			//self.$content = $content.addClass('litebox__content');
 			console.log($content);
 			//self.$instance.find('.litebox__content').html($content);
