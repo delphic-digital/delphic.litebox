@@ -16,6 +16,8 @@
 		defaults: {
 			contentFilters: ['image', 'html']
 		},
+		
+		instance: Litebox,
 
 		init: function($elm, config){
 			this.$elm = $elm;
@@ -32,31 +34,23 @@
 							'</div>',
 						'</div>'].join(''));
 
-			self.$instance = $html.clone();
+			self.$instance = $html.clone()
 			return this;
 		},
+		
 		attach: function(){
-			console.log(this.$elm)
+			var lb = this;
 			this.$elm.on('click.lightbox', function(e){
 				e.preventDefault();
-				console.log(this);
-			})
-			console.log('attached');
-		},
+				console.log(lb);
+				lb.open();
+			})		
+		}, 
+		
 		open: function(){
-			console.log('open!');
-		},
-		getContent: function(){
-			console.log('getContent')
-		},
-		setContent: function(){
-			console.log('setContent')
-		},
-		close: function (){
-			console.log('close')
-		},
-	};
-
+			console.log('open now');
+		}
+	}
 	// does nothing more than extend jQuery
 	$.fn.litebox = function($content, config){
 

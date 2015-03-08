@@ -84,8 +84,7 @@
 			maxWidth: options.maxWidth,
 			maxHeight: options.maxHeight,
 			borderWidth: options.borderWidth+'px'
-		})
-
+	
 		data.$close.css({
 			top: '-'+options.borderWidth+'px',
 			right: '-'+options.borderWidth+'px'
