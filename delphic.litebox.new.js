@@ -50,7 +50,7 @@
 			    $html = $([
 						'<div id="litebox" class="loading">',
 							'<div class="litebox__container">',
-								'<div class="litebox__loading"><div></div><div></div><div></div><div></div><div></div></div>',
+								'<div class="litebox__loading"><div></div><div></div><div></div></div>',
 								'<div class="litebox__close"></div>',
 								'<div class="litebox__content"></div>',
 							'</div>',

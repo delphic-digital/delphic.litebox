@@ -69,82 +69,40 @@
 #litebox.loading .litebox__loading { display: block; }
 
 
-#litebox .litebox__loading {
-	display: none;
-  width: 70px;
-  height: 20px;
-  position: absolute;
+#litebox .litebox__loading{
+  position:absolute;
   top: 50%;
   left: 50%;
-  -webkit-transform: translate(-50%, -50%);
-      -ms-transform: translate(-50%, -50%);
-          transform: translate(-50%, -50%);
+  margin: -25px 0 0 -25px;
+  width:50px;
+  height:50px;
 }
-#litebox .litebox__loading > div {
-  content: " ";
-  width: 8px;
-  height: 8px;
-  background: #2196F3;
-  border-radius: 100%;
+
+#litebox .litebox__loading > div{
   position: absolute;
-  -webkit-animation: shift 2s linear infinite;
-          animation: shift 2s linear infinite;
-}
-#litebox .litebox__loading > div:nth-of-type(1) {
-  -webkit-animation-delay: -.4s;
-          animation-delay: -.4s;
-}
-#litebox .litebox__loading > div:nth-of-type(2) {
-  -webkit-animation-delay: -.8s;
-          animation-delay: -.8s;
-}
-#litebox .litebox__loading > div:nth-of-type(3) {
-  -webkit-animation-delay: -1.2s;
-          animation-delay: -1.2s;
-}
-#litebox .litebox__loading > div:nth-of-type(4) {
-  -webkit-animation-delay: -1.6s;
-          animation-delay: -1.6s;
+  top: 0;
+  left: 0;
+  width:10px;
+  height:10px;
+  border-radius: 10px;
+  background: #e8ecee;
+
+  -webkit-animation: dotArc 3s infinite ease-in-out;
+  animation: dotArc 3s infinite ease-in-out;
 }
 
-@-webkit-keyframes shift {
-  0% {
-    left: -30px;
-    opacity: 0;
-    background-color: #383838;
-  }
-  10% {
-    left: 0;
-    opacity: 1;
-  }
-  90% {
-    left: 50px;
-    opacity: 1;
-  }
-  100% {
-    left: 80px;
-    background-color: #6B6B6B;
-    opacity: 0;
-  }
+#litebox .litebox__loading > div:first-child{
+  -webkit-animation-delay: -1s;
+  animation-delay: -1s;
+}
+#litebox .litebox__loading > div:last-child{
+  -webkit-animation-delay: -2s;
+  animation-delay: -2s;
 }
 
-@keyframes shift {
-  0% {
-    left: -30px;
-    opacity: 0;
-    background-color: #383838;
-  }
-  10% {
-    left: 0;
-    opacity: 1;
-  }
-  90% {
-    left: 50px;
-    opacity: 1;
-  }
-  100% {
-    left: 80px;
-    background-color: #6B6B6B;
-    opacity: 0;
-  }
+@-webkit-keyframes dotArc {
+  1% { }
+  33% { -webkit-transform: translateX(20px) translateY(40px);}
+  66% { -webkit-transform: translateX(40px) translateY(0px); }
+  /* 100% { opacity: 1} */
 }
