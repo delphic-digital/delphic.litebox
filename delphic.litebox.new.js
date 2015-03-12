@@ -14,7 +14,8 @@
 	Litebox.prototype = {
 
 		defaults: {
-			contentFilters: ['image', 'html']
+			maxWidth: '90%',
+	    maxHeight: '90%'
 		},
 		constructor: Litebox,
 		root: 'body',
@@ -24,14 +25,16 @@
 			image: {
 				regex: /\.(png|jpg|jpeg|gif|tiff|bmp)(\?\S*)?$/i,
 				process: function(url)  {
-					console.log(url)
 					var self = this,
 						deferred = $.Deferred(),
-						img = new Image();
-					img.onload  = function() { deferred.resolve(
-						$('<img src="'+url+'" alt="" class="'+self.namespace+'-image" />')
-					); };
-					img.onerror = function() { deferred.reject(); };
+						img = new Image(),
+						$img = $('<img src="'+url+'" alt="" class="litebox__image" />');
+
+					img.onload  = function() {
+						$img.naturalWidth = img.width; $img.naturalHeight = img.height;
+						deferred.resolve($img);
+					};
+					img.onerror = function() { deferred.reject($img); };
 					img.src = url;
 					return deferred.promise();
 				}
@@ -62,11 +65,35 @@
 
 		attach: function(){
 			var self = this;
-			self.$elm.on('click.lightbox', function(e){
+			self.$elm.on('click.litebox', function(e){
 				e.preventDefault();
 				self.$target = $(this);
 				self.open();
 			})
+
+			$(window).on("resize.litebox", function(e){
+				self.resize();
+			})
+		},
+		open: function(event){
+			DEBUG && console.log('open');
+
+			var self = this,
+			    $content = self.getContent();
+
+			if($content){
+				self.$instance.appendTo(self.root).velocity("fadeIn", { duration: 500 })
+
+				//Set content and show
+				$.when($content).done(function($content){
+					self.setContent($content);
+
+					//TODO: _after callback, test resize for now...
+					self.resize()
+				});
+				return self;
+			}
+
 		},
 
 		getContent: function(){
@@ -77,6 +104,8 @@
 				readTargetAttr = function(name){ return self.$target && self.$target.attr(name); },
 				data = readTargetAttr(self.targetAttr),
 				target = data;
+
+				console.log(self)
 
 			$.each(filters, function() {
 				filter = this;
@@ -100,30 +129,50 @@
 
 			self.$content = $content.addClass('litebox__content');
 			self.$instance.find('.litebox__content').html($content);
-			console.log(self.$instance);
+			self.$content = $content;
 			return self;
 		},
 
-		open: function(event){
-			DEBUG && console.log('open');
+		resize: function(){
+			var w = this.$content.naturalWidth,
+			    h = this.$content.naturalHeight,
+			    maxWindowWidth = $(window).width()*parseInt(this.config.maxWidth)/100,
+			    maxWindowHeight = $(window).height()*parseInt(this.config.maxHeight)/100,
+			    aspectRatio = w/h;
 
-			var self = this,
-			    $content = self.getContent();
+			if(w>h){
+				//Wide
+				if(w>maxWindowWidth){
+					w=maxWindowWidth;
+				}
+				h=w/aspectRatio;
 
-			    console.log($content)
+				if(h>maxWindowHeight){
+					h=maxWindowHeight;
+					w=h*aspectRatio;
+				}
 
-			if($content){
-				self.$instance.appendTo(self.root).velocity("fadeIn", { duration: 500 })
+			}else{
+				//Tall
+				if(h>maxWindowHeight){
+					h=maxWindowHeight;
+				}
+				w=h*aspectRatio;
 
-				//Set content and show
-				$.when($content).done(function($content){
-					//self.setContent($content);
-				});
-				return self;
+				if(w>maxWindowWidth){
+					w=maxWindowWidth;
+					h=w/aspectRatio;
+				}
 			}
 
+			this.$content.css({
+				width: w,
+				height: h
+			})
 		}
+
 	}
+
 	// does nothing more than extend jQuery
 	$.fn.litebox = function($content, config){
 

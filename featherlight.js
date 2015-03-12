@@ -1,6 +1,6 @@
 /**
  * Featherlight - ultra slim jQuery lightbox
- * Version 1.0.4 - http://noelboss.github.io/featherlight/
+ * Version 1.2.2 - http://noelboss.github.io/featherlight/
  *
  * Copyright 2015, Noël Raoul Bossart (http://www.noelboss.com)
  * MIT Licensed.
@@ -46,15 +46,49 @@
 		}
 	}
 
-	/* document wide key handler */
-	var keyHelper = function(event) {
-		if (!event.isDefaultPrevented()) { // esc keycode
-			var self = Featherlight.current();
-			if (self) {
-				self.onKeyDown(event);
+	var opened = [],
+		pruneOpened = function(remove) {
+			opened = $.grep(opened, function(fl) {
+				return fl !== remove && fl.$instance.closest('body').length > 0;
+			} );
+			return opened;
+		};
+
+	// structure({iframeMinHeight: 44, foo: 0}, 'iframe')
+	//   #=> {min-height: 44}
+	var structure = function(obj, prefix) {
+		var result = {},
+			regex = new RegExp('^' + prefix + '([A-Z])(.*)');
+		for (var key in obj) {
+			var match = key.match(regex);
+			if (match) {
+				var dasherized = (match[1] + match[2].replace(/([A-Z])/g, '-$1')).toLowerCase();
+				result[dasherized] = obj[key];
 			}
 		}
+		return result;
 	};
+
+	/* document wide key handler */
+	var eventMap = { keyup: 'onKeyUp', resize: 'onResize' };
+
+	var globalEventHandler = function(event) {
+		$.each(Featherlight.opened().reverse(), function() {
+			if (!event.isDefaultPrevented()) {
+				if (false === this[eventMap[event.type]](event)) {
+					event.preventDefault(); event.stopPropagation(); return false;
+			  }
+			}
+		});
+	};
+
+	var toggleGlobalEvents = function(set) {
+			if(set !== Featherlight._globalHandlerInstalled) {
+				Featherlight._globalHandlerInstalled = set;
+				var events = $.map(eventMap, function(_, name) { return name+'.'+Featherlight.prototype.namespace; } ).join(' ');
+				$(window)[set ? 'on' : 'off'](events, globalEventHandler);
+			}
+		};
 
 	Featherlight.prototype = {
 		constructor: Featherlight,
@@ -74,6 +108,7 @@
 		closeOnClick: 'background',           /* Close lightbox on click ('background', 'anywhere' or false) */
 		closeOnEsc:   true,                   /* Close lightbox when pressing esc */
 		closeIcon:    '&#10005;',             /* Close icon */
+		loading:      '',                     /* Content to show while initial content is loading */
 		otherClose:   null,                   /* Selector for alternate close buttons (e.g. "a.close") */
 		beforeOpen:   $.noop,                 /* Called before open. can return false to prevent opening of lightbox. Gets event as parameter, this contains all data */
 		beforeContent: $.noop,                /* Called when content is loaded. Gets event as parameter, this contains all data */
@@ -81,9 +116,10 @@
 		afterOpen:    $.noop,                 /* Called after open. Gets event as parameter, this contains all data */
 		afterContent: $.noop,                 /* Called after content is ready and has been set. Gets event as parameter, this contains all data */
 		afterClose:   $.noop,                 /* Called after close. Gets event as parameter, this contains all data */
-		onKeyDown:    $.noop,									/* Called on key down for the frontmost featherlight */
+		onKeyUp:      $.noop,                 /* Called on key down for the frontmost featherlight */
+		onResize:     $.noop,                 /* Called after new content and when a window is resized */
 		type:         null,                   /* Specify type of lightbox. If unset, it will check for the targetAttrs value. */
-		contentFilters: ['jquery', 'image', 'html', 'ajax', 'text'], /* List of content filters to use to determine the content */
+		contentFilters: ['jquery', 'image', 'html', 'ajax', 'iframe', 'text'], /* List of content filters to use to determine the content */
 
 		/*** methods ***/
 		/* setup iterates over a single instance of featherlight and prepares the background and binds the events */
@@ -97,12 +133,12 @@
 			var self = $.extend(this, config, {target: target}),
 				css = !self.resetCss ? self.namespace : self.namespace+'-reset', /* by adding -reset to the classname, we reset all the default css */
 				$background = $(self.background || [
-					'<div class="'+css+'">',
+					'<div class="'+css+'-loading '+css+'">',
 						'<div class="'+css+'-content">',
 							'<span class="'+css+'-close-icon '+ self.namespace + '-close">',
 								self.closeIcon,
 							'</span>',
-							'<div class="'+self.namespace+'-inner"></div>',
+							'<div class="'+self.namespace+'-inner">' + self.loading + '</div>',
 						'</div>',
 					'</div>'].join('')),
 				closeButtonSelector = '.'+self.namespace+'-close' + (self.otherClose ? ',' + self.otherClose : '');
@@ -182,14 +218,16 @@
 				self.$instance.addClass(self.namespace+'-iframe');
 			}
 
-			self.$content = $content.addClass(self.namespace+'-inner');
+			self.$instance.removeClass(self.namespace+'-loading');
 
 			/* replace content by appending to existing one before it is removed
 			   this insures that featherlight-inner remain at the same relative
 				 position to any other items added to featherlight-content */
 			self.$instance.find('.'+self.namespace+'-inner')
 				.slice(1).remove().end()			/* In the unexpected event where there are many inner elements, remove all but the first one */
-				.replaceWith(self.$content);
+				.replaceWith($.contains(self.$instance[0], $content[0]) ? '' : $content);
+
+			self.$content = $content.addClass(self.namespace+'-inner');
 
 			return self;
 		},
@@ -197,6 +235,7 @@
 		/* opens the lightbox. "this" contains $instance with the lightbox, and with the config */
 		open: function(event){
 			var self = this;
+			self.$instance.hide().appendTo(self.root);
 			if((!event || !event.isDefaultPrevented())
 				&& self.beforeOpen(event) !== false) {
 
@@ -206,25 +245,15 @@
 				var $content = self.getContent();
 
 				if($content){
-					/* Add to opened registry */
-					self.constructor._opened.add(self._openedCallback = function(klass, response){
-						if ((self instanceof klass) &&
-								(self.$instance.closest('body').length > 0)) {
-							response.currentFeatherlight = self;
-						}
-					});
+					opened.push(self);
 
-					/* attach key handler to document if needed */
-					if(!Featherlight._keyHandlerInstalled) {
-						$(document).on('keyup.'+Featherlight.prototype.namespace, keyHelper);
-						Featherlight._keyHandlerInstalled = true;
-					}
+					toggleGlobalEvents(true);
 
-					self.$instance.appendTo(self.root).fadeIn(self.openSpeed);
+					self.$instance.fadeIn(self.openSpeed);
 					self.beforeContent(event);
 
 					/* Set content and show */
-					$.when($content).done(function($content){
+					$.when($content).always(function($content){
 						self.setContent($content);
 						self.afterContent(event);
 						/* Call afterOpen after fadeIn is done */
@@ -235,6 +264,7 @@
 					return self;
 				}
 			}
+			self.$instance.detach();
 			return false;
 		},
 
@@ -244,12 +274,9 @@
 			if(self.beforeClose(event) === false) {
 				return false;
 			}
-			self.constructor._opened.remove(self._openedCallback);
 
-			/* attach key handler to document if no opened Featherlight */
-			if(!Featherlight.current()) {
-				$(document).off('keyup.'+Featherlight.namespace, keyHelper);
-				self.constructor._keyHandlerInstalled = false;
+			if (0 === pruneOpened(self).length) {
+				toggleGlobalEvents(false);
 			}
 
 			self.$instance.fadeOut(self.closeSpeed,function(){
@@ -288,11 +315,14 @@
 				process: function(url)  {
 					var self = this,
 						deferred = $.Deferred(),
-						img = new Image();
-					img.onload  = function() { deferred.resolve(
-						$('<img src="'+url+'" alt="" class="'+self.namespace+'-image" />')
-					); };
-					img.onerror = function() { deferred.reject(); };
+						img = new Image(),
+						$img = $('<img src="'+url+'" alt="" class="'+self.namespace+'-image" />');
+					img.onload  = function() {
+						/* Store naturalWidth & height for IE8 */
+						$img.naturalWidth = img.width; $img.naturalHeight = img.height;
+						deferred.resolve( $img );
+					};
+					img.onerror = function() { deferred.reject($img); };
 					img.src = url;
 					return deferred.promise();
 				}
@@ -316,6 +346,20 @@
 					return deferred.promise();
 				}
 			},
+			iframe: {
+				process: function(url) {
+					var deferred = new $.Deferred();
+					var $content = $('<iframe/>')
+						.hide()
+						.attr('src', url)
+						.css(structure(this, 'iframe'))
+						.on('load', function() { deferred.resolve($content.show()); })
+						// We can't move an <iframe> and avoid reloading it,
+						// so let's put it in place ourselves right now:
+						.appendTo(this.$instance.find('.' + this.namespace + '-content'));
+					return deferred.promise();
+				}
+			},
 			text: {
 				process: function(text) { return $('<div>', {text: text}); }
 			}
@@ -325,12 +369,13 @@
 
 		/*** class methods ***/
 		/* read element's attributes starting with data-featherlight- */
-		readElementConfig: function(element) {
+		readElementConfig: function(element, namespace) {
 			var Klass = this,
+				regexp = new RegExp('^data-' + namespace + '-(.*)'),
 				config = {};
 			if (element && element.attributes) {
-					$.each(element.attributes, function(){
-					var match = this.name.match(/^data-featherlight-(.*)/);
+				$.each(element.attributes, function(){
+					var match = this.name.match(regexp);
 					if (match) {
 						var val = this.value,
 							name = $.camelCase(match[1]);
@@ -379,20 +424,30 @@
 			config = $.extend({}, config);
 
 			/* Only for openTrigger and namespace... */
-			var tempConfig = $.extend({}, Klass.defaults, Klass.readElementConfig($source[0]), config);
+			var namespace = config.namespace || Klass.defaults.namespace,
+				tempConfig = $.extend({}, Klass.defaults, Klass.readElementConfig($source[0], namespace), config);
 
 			$source.on(tempConfig.openTrigger+'.'+tempConfig.namespace, tempConfig.filter, function(event) {
 				/* ... since we might as well compute the config on the actual target */
-				var elemConfig = $.extend({$source: $source, $currentTarget: $(this)}, Klass.readElementConfig($source[0]), Klass.readElementConfig(this), config);
+				var elemConfig = $.extend(
+					{$source: $source, $currentTarget: $(this)},
+					Klass.readElementConfig($source[0], tempConfig.namespace),
+					Klass.readElementConfig(this, tempConfig.namespace),
+					config);
 				new Klass($content, elemConfig).open(event);
 			});
 			return $source;
 		},
 
 		current: function() {
-			var response = {};
-			this._opened.fire(this, response);
-			return response.currentFeatherlight;
+			var all = this.opened();
+			return all[all.length - 1] || null;
+		},
+
+		opened: function() {
+			var klass = this;
+			pruneOpened();
+			return $.grep(opened, function(fl) { return fl instanceof klass; } );
 		},
 
 		close: function() {
@@ -417,22 +472,44 @@
 			}
 		},
 
-		/* Featherlight uses the onKeyDown callback to intercept the escape key.
+		/* Featherlight uses the onKeyUp callback to intercept the escape key.
 		   Private to Featherlight.
 		*/
 		_callbackChain: {
-			onKeyDown: function(_super, event){
-				if(27 === event.keyCode && this.closeOnEsc) {
-					this.$instance.find('.'+this.namespace+'-close:first').click();
-					event.preventDefault();
+			onKeyUp: function(_super, event){
+				if(27 === event.keyCode) {
+					if (this.closeOnEsc) {
+						this.$instance.find('.'+this.namespace+'-close:first').click();
+					}
+					return false;
 				} else {
-					console.log('pass');
 					return _super(event);
 				}
-			}
-		},
+			},
 
-		_opened: $.Callbacks()
+			onResize: function(_super, event){
+				if (this.$content.naturalWidth) {
+					var w = this.$content.naturalWidth, h = this.$content.naturalHeight;
+					/* Reset apparent image size first so container grows */
+					this.$content.css('width', '').css('height', '');
+					/* Calculate the worst ratio so that dimensions fit */
+					var ratio = Math.max(
+						w  / parseInt(this.$content.parent().css('width'),10),
+						h / parseInt(this.$content.parent().css('height'),10));
+					/* Resize content */
+					if (ratio > 1) {
+						this.$content.css('width', '' + w / ratio + 'px').css('height', '' + h / ratio + 'px');
+					}
+				}
+				return _super(event);
+			},
+
+			afterContent: function(_super, event){
+				var r = _super(event);
+				this.onResize(event);
+				return r;
+			}
+		}
 	});
 
 	$.featherlight = Featherlight;

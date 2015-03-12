@@ -33,10 +33,10 @@
 }
 
 #litebox .litebox__container {
-	min-width: 20%;
-	min-height: 20%;
 	display: inline-block;
 	position: relative;
+  min-width: 70px;
+  min-height: 70px;
 	text-align: left;
 	vertical-align: middle;
 	background: #fff;
@@ -53,7 +53,7 @@
 	height: 100%;
 }
 
-#litebox .litebox__content .litebox__image { max-width: 100%; max-height: 100%; height: auto;}
+#litebox .litebox__content .litebox__image { display: block; max-width: 100%; max-height: 100%; height: auto;}
 
 #litebox .litebox__close {
 	position:absolute;
@@ -67,9 +67,11 @@
 }
 
 #litebox.loading .litebox__loading { display: block; }
+#litebox.loading .litebox__close   { display: none; }
 
 
 #litebox .litebox__loading{
+  display: none;
   position:absolute;
   top: 50%;
   left: 50%;
