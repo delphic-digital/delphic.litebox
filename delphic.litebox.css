@@ -57,8 +57,8 @@
 
 #litebox .litebox__close {
 	position:absolute;
-	top: 0;
-	right: 0;
+	top: -2px;
+	right: -2px;
 	z-index:1002;
 	cursor:pointer;
 	width: 20px;
@@ -75,36 +75,28 @@
   position:absolute;
   top: 50%;
   left: 50%;
-  margin: -25px 0 0 -25px;
-  width:50px;
-  height:50px;
+  margin: -15px 0 0 -15px;
+  width:25px;
+  height:25px;
 }
 
 #litebox .litebox__loading > div{
-  position: absolute;
-  top: 0;
-  left: 0;
-  width:10px;
-  height:10px;
-  border-radius: 10px;
-  background: #e8ecee;
-
-  -webkit-animation: dotArc 3s infinite ease-in-out;
-  animation: dotArc 3s infinite ease-in-out;
+  width: 25px;
+  height: 25px;
+  margin: 0 auto;
+  border: 3px solid rgba(0,0,0,.3);
+  border-radius: 50%;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  -webkit-animation: spin 1s infinite linear;
+  animation: spin 1s infinite linear;
 }
 
-#litebox .litebox__loading > div:first-child{
-  -webkit-animation-delay: -1s;
-  animation-delay: -1s;
-}
-#litebox .litebox__loading > div:last-child{
-  -webkit-animation-delay: -2s;
-  animation-delay: -2s;
+@keyframes spin {
+  100%{ transform: rotate(360deg); }
 }
 
-@-webkit-keyframes dotArc {
-  1% { }
-  33% { -webkit-transform: translateX(20px) translateY(40px);}
-  66% { -webkit-transform: translateX(40px) translateY(0px); }
-  /* 100% { opacity: 1} */
+@-webkit-keyframes spin {
+  100%{ -webkit-transform: rotate(360deg); transform: rotate(360deg); }
 }
+
