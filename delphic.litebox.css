@@ -42,8 +42,9 @@
 	background: #fff;
 	border-color: #000;
 	border-style: solid;
+  border-width: 2px;
 	box-sizing: content-box;
-	box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.75);
+	box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.6);
 }
 
 #litebox .litebox__content
@@ -75,7 +76,7 @@
   position:absolute;
   top: 50%;
   left: 50%;
-  margin: -15px 0 0 -15px;
+  margin: -12.5px 0 0 -12.5px;
   width:25px;
   height:25px;
 }

@@ -75,21 +75,30 @@
 				self.resize();
 			})
 		},
+
 		open: function(event){
 			DEBUG && console.log('open');
 
 			var self = this,
-			    $content = self.getContent();
+			    $content = self.getContent(),
+			    $container = self.$instance.find('.litebox__container');
 
 			if($content){
 				self.$instance.appendTo(self.root).velocity("fadeIn", { duration: 500 })
 
 				//Set content and show
 				$.when($content).done(function($content){
-					self.setContent($content);
+					self.$content = $content;
+					self.$container = $container;
 
 					//TODO: _after callback, test resize for now...
-					self.resize()
+					self.resize();
+
+
+					//Set content after container callback is finished
+					$container.promise().done(function() {
+						self.setContent($content);
+					})
 				});
 				return self;
 			}
@@ -105,7 +114,7 @@
 				data = readTargetAttr(self.targetAttr),
 				target = data;
 
-				console.log(self)
+				//console.log(self)
 
 			$.each(filters, function() {
 				filter = this;
@@ -126,19 +135,26 @@
 
 			self.$instance.removeClass('loading')
 
+			$content.css({opacity: 0});
 
-			self.$content = $content.addClass('litebox__content');
 			self.$instance.find('.litebox__content').html($content);
-			self.$content = $content;
+			self.$content = $content.addClass('litebox__content');
+
+			$content.velocity({opacity: 1}, 200);
+
+
 			return self;
 		},
 
 		resize: function(){
+			console.log(this)
 			var w = this.$content.naturalWidth,
 			    h = this.$content.naturalHeight,
 			    maxWindowWidth = $(window).width()*parseInt(this.config.maxWidth)/100,
 			    maxWindowHeight = $(window).height()*parseInt(this.config.maxHeight)/100,
 			    aspectRatio = w/h;
+
+			    console.log(w)
 
 			if(w>h){
 				//Wide
@@ -165,10 +181,10 @@
 				}
 			}
 
-			this.$content.css({
+			this.$container.velocity({
 				width: w,
 				height: h
-			})
+			}, 300)
 		}
 
 	}
