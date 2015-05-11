@@ -59,7 +59,10 @@
 							'</div>',
 						'</div>'].join(''));
 
-			self.$instance = $html.clone()
+			self.$instance = $html.clone();
+			self.$instance.on('click.litebox', '.litebox__close', function(e) {
+				self.close();
+			})
 			return self;
 		},
 
@@ -76,7 +79,7 @@
 			})
 		},
 
-		open: function(event){
+		open: function(e){
 			DEBUG && console.log('open');
 
 			var self = this,
@@ -92,7 +95,7 @@
 					self.$container = $container;
 
 					//TODO: _after callback, test resize for now...
-					self.resize();
+					self.resize(true);
 
 
 					//Set content after container callback is finished
@@ -103,6 +106,17 @@
 				return self;
 			}
 
+		},
+
+		close: function(e){
+			DEBUG && console.log('close')
+
+			var self = this;
+
+			//self.$instance.fadeOut(self.closeSpeed,function(){
+				self.$instance.detach();
+				//self.afterClose(event);
+			//});
 		},
 
 		getContent: function(){
@@ -146,15 +160,13 @@
 			return self;
 		},
 
-		resize: function(){
-			console.log(this)
+		resize: function(animate){
+			//console.log(this)
 			var w = this.$content.naturalWidth,
 			    h = this.$content.naturalHeight,
 			    maxWindowWidth = $(window).width()*parseInt(this.config.maxWidth)/100,
 			    maxWindowHeight = $(window).height()*parseInt(this.config.maxHeight)/100,
 			    aspectRatio = w/h;
-
-			    console.log(w)
 
 			if(w>h){
 				//Wide
@@ -181,10 +193,19 @@
 				}
 			}
 
-			this.$container.velocity({
-				width: w,
-				height: h
-			}, 300)
+			if(animate){
+				this.$container.velocity({
+					width: w,
+					height: h
+				}, 300)
+			}else{
+				this.$container.css({
+					width: w,
+					height: h
+				})
+
+			}
+
 		}
 
 	}

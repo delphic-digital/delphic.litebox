@@ -1,11 +1,6 @@
 module.exports = function(grunt) {
 
 	grunt.initConfig({
-		watch: {
-			everything: {
-				files: ['**/*']
-			}
-		},
 		browserSync: {
 			dev: {
 				bsFiles: {
@@ -14,7 +9,6 @@ module.exports = function(grunt) {
 					]
 				},
 				options: {
-					watchTask: true,
 					server: './'
 				}
 			}
